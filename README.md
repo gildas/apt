@@ -15,25 +15,33 @@ This repository follows the Debian archive structure:
 
 ## Configure APT
 
+Download the signing key:
+
+```bash
+curl -fsSL https://gildas.github.io/apt/gildas-archive-keyring.gpg | \
+  sudo tee /usr/share/keyrings/gildas-archive-keyring.gpg >/dev/null
+```
+
 Add this source:
 
 ```bash
-echo "deb [arch=amd64,arm64 trusted=yes] https://gildas.github.io/apt stable main" | sudo tee /etc/apt/sources.list.d/gildas.list
+echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/gildas-archive-keyring.gpg] https://gildas.github.io/apt stable main" | sudo tee /etc/apt/sources.list.d/gildas.list
 sudo apt update
 ```
 
-Then install packages from this repository with `apt install <package-name>` (note: `trusted=yes` disables signature verification; prefer a signed repository with `signed-by=` for regular use).
+Then install packages from this repository with `apt install <package-name>`.
 
 ## Publishing new packages
 
-1. Copy new `.deb` files into `pool/main/`
-2. Regenerate metadata:
+The repository is updated automatically by GitHub Actions from the latest releases of:
+
+- `gildas/lv`
+- `gildas/bitbucket-cli`
+
+The workflow downloads any available `.deb` assets for the supported architectures (`amd64`, `arm64`), rebuilds the repository metadata with `reprepro`, signs the release, and publishes the updated contents for GitHub Pages.
+
+For manual maintenance, install `reprepro` and `gnupg`, import the signing key, then rebuild the repository:
 
 ```bash
-dpkg-scanpackages --arch amd64 pool/main > dists/stable/main/binary-amd64/Packages
-gzip -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
-dpkg-scanpackages --arch arm64 pool/main > dists/stable/main/binary-arm64/Packages
-gzip -n -c dists/stable/main/binary-arm64/Packages > dists/stable/main/binary-arm64/Packages.gz
+./scripts/update-apt-repo-from-releases.sh
 ```
-
-3. Update `dists/stable/Release` checksums (MD5/SHA256 for `Packages` and `Packages.gz`)

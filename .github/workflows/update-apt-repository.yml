@@ -1,0 +1,45 @@
+name: Update APT repository
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-apt-repository
+  cancel-in-progress: false
+
+jobs:
+  update-repository:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install repository tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes reprepro gnupg jq curl ca-certificates dpkg-dev
+
+      - name: Rebuild APT repository from latest releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: ./scripts/update-apt-repo-from-releases.sh
+
+      - name: Commit updated repository
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A dists pool gildas-archive-keyring.gpg
+          git commit -m "Update APT repository from latest releases"
+          git push
