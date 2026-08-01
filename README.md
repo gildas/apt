@@ -20,7 +20,7 @@ echo "deb [trusted=yes] https://gildas.github.io/apt stable main" | sudo tee /et
 sudo apt update
 ```
 
-Then install packages from this repository with `apt install <package-name>`.
+Then install packages from this repository with `apt install <package-name>` (note: `trusted=yes` disables signature verification; prefer a signed repository with `signed-by=` for regular use).
 
 ## Publishing new packages
 
