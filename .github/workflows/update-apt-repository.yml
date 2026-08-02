@@ -34,7 +34,7 @@ jobs:
 
       - name: Commit updated repository
         run: |
-          if git diff --quiet; then
+          if [[ -z "$(git status --porcelain)" ]]; then
             exit 0
           fi
 
