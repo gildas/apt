@@ -15,7 +15,6 @@ done
 
 : "${GPG_KEY_ID:?GPG_KEY_ID is required}"
 : "${GPG_PRIVATE_KEY:?GPG_PRIVATE_KEY is required}"
-export GPG_TTY=$(tty)
 
 github_api_headers=(
   --header "Accept: application/vnd.github+json"
@@ -41,8 +40,22 @@ mkdir -p "$gnupg_home"
 chmod 700 "$gnupg_home"
 export GNUPGHOME="$gnupg_home"
 
-printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
-gpg --batch --list-secret-keys "$GPG_KEY_ID" >/dev/null
+cat >"$GNUPGHOME/gpg.conf" <<EOF
+batch
+no-tty
+pinentry-mode loopback
+EOF
+
+cat >"$GNUPGHOME/gpg-agent.conf" <<EOF
+allow-loopback-pinentry
+EOF
+
+if command -v gpgconf >/dev/null 2>&1; then
+  gpgconf --kill gpg-agent >/dev/null 2>&1 || true
+fi
+
+printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --yes --no-tty --pinentry-mode loopback --import
+gpg --batch --yes --no-tty --pinentry-mode loopback --list-secret-keys "$GPG_KEY_ID" >/dev/null
 
 work_repo="$workspace/repository"
 downloads_dir="$workspace/downloads"
@@ -104,7 +117,7 @@ if [[ "$imported_packages" -eq 0 ]]; then
   exit 1
 fi
 
-gpg --batch --yes --output "$work_repo/gildas-archive-keyring.gpg" --export "$GPG_KEY_ID"
+gpg --batch --yes --no-tty --pinentry-mode loopback --output "$work_repo/gildas-archive-keyring.gpg" --export "$GPG_KEY_ID"
 
 rm -rf "$repo_root/dists" "$repo_root/pool"
 cp -a "$work_repo/dists" "$repo_root/dists"
