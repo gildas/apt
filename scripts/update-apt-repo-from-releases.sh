@@ -52,6 +52,7 @@ EOF
 
 if command -v gpgconf >/dev/null 2>&1; then
   gpgconf --kill gpg-agent >/dev/null 2>&1 || true
+  gpgconf --launch gpg-agent >/dev/null 2>&1 || true
 fi
 
 printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --yes --no-tty --pinentry-mode loopback --import
@@ -107,7 +108,7 @@ for repository in "${source_repositories[@]}"; do
       continue
     fi
 
-    reprepro --basedir "$work_repo" includedeb stable "$asset_path"
+    GPGME_PINENTRY_MODE=loopback reprepro --basedir "$work_repo" includedeb stable "$asset_path"
     imported_packages=$((imported_packages + 1))
   done
 done
