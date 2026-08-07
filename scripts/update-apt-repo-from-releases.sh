@@ -15,6 +15,7 @@ done
 
 : "${GPG_KEY_ID:?GPG_KEY_ID is required}"
 : "${GPG_PRIVATE_KEY:?GPG_PRIVATE_KEY is required}"
+export GPG_TTY=$(tty)
 
 github_api_headers=(
   --header "Accept: application/vnd.github+json"
