@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Origin: gildas
 Label: gildas
 Suite: stable
@@ -27,3 +30,10 @@ SHA256:
  a45f0e1e260aa62a814718da93e12ad99f20bb3bb1e9abca8d6ce8714e9ac4d4 1310 main/binary-arm64/Packages
  c1d95edc4edc165a1934f04b3aafe1eb30d9f4a2964b7682fc659f1ac4d94cf6 682 main/binary-arm64/Packages.gz
  8c257cbeb76d83e47eae8053c31f9e67e4ae5667ae6a786af4524b015f92a0b0 116 main/binary-arm64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYKAB0WIQQP29GNkRRfX7IUJjAAqdyOXpp+AAUCanX1owAKCRAAqdyOXpp+
+AOS8AP9V7efvowQ7mOgxi+SPa/ubUkqOMFnHrWWTpluzjKZpjQEAn0jsO6UV1vPJ
+KR+3IoBGkXmoPcMwV8gQZpOaEPVapgw=
+=S1Qn
+-----END PGP SIGNATURE-----
