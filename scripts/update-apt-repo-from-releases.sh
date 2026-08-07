@@ -48,15 +48,21 @@ EOF
 
 cat >"$GNUPGHOME/gpg-agent.conf" <<EOF
 allow-loopback-pinentry
+allow-preset-passphrase
 EOF
 
-if command -v gpgconf >/dev/null 2>&1; then
-  gpgconf --kill gpg-agent >/dev/null 2>&1 || true
-  gpgconf --launch gpg-agent >/dev/null 2>&1 || true
-fi
+# Kill any existing gpg-agent and start a fresh one with our config
+gpgconf --homedir "$GNUPGHOME" --kill gpg-agent 2>/dev/null || true
+gpg-connect-agent --homedir "$GNUPGHOME" /bye 2>/dev/null || true
 
 printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --yes --no-tty --pinentry-mode loopback --import
 gpg --batch --yes --no-tty --pinentry-mode loopback --list-secret-keys "$GPG_KEY_ID" >/dev/null
+
+# Pre-seed an empty passphrase so GPGME can sign non-interactively (CI keys have no passphrase)
+keygrip="$(gpg --batch --with-keygrip --list-secret-keys "$GPG_KEY_ID" | awk '/Keygrip/ {print $3; exit}')"
+if [[ -n "$keygrip" ]]; then
+  gpg-preset-passphrase --preset "$keygrip" <<< "" 2>/dev/null || true
+fi
 
 work_repo="$workspace/repository"
 downloads_dir="$workspace/downloads"
@@ -108,7 +114,7 @@ for repository in "${source_repositories[@]}"; do
       continue
     fi
 
-    GPGME_PINENTRY_MODE=loopback reprepro --basedir "$work_repo" includedeb stable "$asset_path"
+    reprepro --basedir "$work_repo" --gnupghome "$GNUPGHOME" includedeb stable "$asset_path"
     imported_packages=$((imported_packages + 1))
   done
 done
